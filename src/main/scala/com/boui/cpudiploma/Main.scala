@@ -15,6 +15,8 @@ trait AlgorithmSettings{
 }
 
 object GraphGenerator{
+  val random = new Random()
+
   case class Graph(adjacency:Array[Array[Boolean]]){
     def size = adjacency.length
 
@@ -82,7 +84,6 @@ object GraphGenerator{
         graph.adjacency(i)(i)=false
       }
       var failsLeft = 5
-      val random = new Random()
       while(failsLeft>=0){
         val i =  random.nextInt(graph.size-1)+1
         val j = random.nextInt(i)
@@ -178,12 +179,22 @@ trait SolutionEvaluator{
   }
 }
 
+abstract sealed class OperationMode{
+  def aggregationOperation:Iterable[Double]=>Double
+}
+case object Parallel extends OperationMode{
+  def aggregationOperation: (Iterable[Double]) => Double = _.max
+}
+case object Sequential extends OperationMode{
+  def aggregationOperation: (Iterable[Double]) => Double = _.sum
+}
+
 trait AlgorithmRunner extends SolutionEvaluator{ self: PermutationsIteratorComponent=>
    import GraphGenerator._
 
    def graph:Graph
-
    def settings:AlgorithmSettings
+   def operationMode:OperationMode
 
    def run{
 
@@ -197,7 +208,7 @@ trait AlgorithmRunner extends SolutionEvaluator{ self: PermutationsIteratorCompo
        }
 
        def evaluateCurrent{
-         val tTst = getTestTime(cnt)(_.max)
+         val tTst = getTestTime(cnt)(operationMode.aggregationOperation)
          if (tTst<optimalValue){
            optimalValue = tTst
            storeOptimal
@@ -255,12 +266,14 @@ object Main{
     val allPermutationsRunner = new AlgorithmRunner with AllPermutationsIteratorComponent{
       def settings = algorithmSettings
       def graph = generatedGraph
+      def operationMode = Parallel
     }
     allPermutationsRunner.run
 
     val randomPermutationsRunner = new AlgorithmRunner with RandomPermutationsIteratorComponent{
       def settings = algorithmSettings
       def graph = generatedGraph
+      def operationMode = Sequential
       def totalToTest = 20000
     }
     randomPermutationsRunner.run
