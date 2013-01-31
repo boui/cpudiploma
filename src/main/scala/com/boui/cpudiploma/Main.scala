@@ -121,7 +121,7 @@ trait AllPermutationsIteratorComponent extends PermutationsIteratorComponent{
 
   def iterate(k: Int, size: Int, cnt:Array[Set[Int]], evaluateCurrent: ()=> Unit){
     val seedPermutations = buildPermutations(k, size-1)
-    println(seedPermutations.map(permutation=>genPermutationsForCpu(permutation, 0)))
+
     def iterateForLevel(level:Int){
       if (level==size){
         evaluateCurrent()
@@ -253,7 +253,7 @@ trait OptimalTesters extends SolutionEvaluator{
 object Main{
   def main(argv: Array[String]){
     val algorithmSettings = new AlgorithmSettings {
-      def n = 5
+      def n = 6
       def timeTesting = 0.2
       def k = 3
       def timeTransfer = 0.1
